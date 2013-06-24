@@ -215,6 +215,8 @@ function Install_NodeJS
     echo -e "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
     cd && rm -rf /tmp/nodejs >> /dev/nul &
     Load_gif
+	
+	npm config set registry http://registry.npmjs.org/
 }
 
 # Gestion d'erreurs
