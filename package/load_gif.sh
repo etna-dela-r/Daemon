@@ -15,5 +15,5 @@ function Load_gif
 	echo -ne "\r\\"
 	sleep 0.2
     done
-    echo -ne "\r";
+    echo -ne "\r ";
 }

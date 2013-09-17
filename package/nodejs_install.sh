@@ -46,6 +46,12 @@ then
     fi
 fi
 
+# Check if checkinstall is installed
+dpkg --get-selections | grep -e '^checkinstall\s' 1>/dev/null && CHECKINSTALL=1 || CHECKINSTALL=0
+
+# Check if gcc is installed
+dpkg --get-selections | grep -e '^gcc\s' 1>/dev/null && GCC=1 || GCC=0
+
 # Check if python is installed
 dpkg --get-selections | grep -e '^python\s' 1>/dev/null && PYTHON=1 || PYTHON=0
 
@@ -79,19 +85,19 @@ function Questions
 if [ "${LANGUAGE}" = "fr" ]
 then
     echo "L'installation de NodeJS a besoin des paquets python, make, g++ et wget pour fonctionner correctement."
-    if [ ${PYTHON} -eq 1 -o ${MAKE} -eq 1 -o ${G} -eq 1 -o ${WGET} -eq 1 ]
+    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 ]
     then
 	Question_install_node 0;
     else
-	Question_install_dependences ${PYTHON} ${MAKE} ${G} ${WGET};
+	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
     fi
 else
     echo "NodeJS installation needs python, make and g++ packages to run."
-    if [ ${PYTHON} -eq 1 -o ${MAKE} -eq 1 -o ${G} -eq 1 -o ${WGET} -eq 1 ]
+    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 ]
     then
 	Question_install_node_en 0;
     else
-	Question_install_dependences_en ${PYTHON} ${MAKE} ${G} ${WGET};
+	Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
     fi
 fi
 }
@@ -135,6 +141,8 @@ function Question_install_node_en
 function Question_install_dependences
 {
     echo "Les paquets suivants sont manquants :"
+    [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
+    [ ${GCC} -eq 0 ] && echo "gcc"
     [ ${PYTHON} -eq 0 ] && echo "python"
     [ ${MAKE} -eq 0 ] && echo "make"
     [ ${G} -eq 0 ] && echo "g++"
@@ -142,16 +150,18 @@ function Question_install_dependences
     echo -n "Souhaitez-vous que ce script les installe ?[Oui|non]: "
     read answer
     case $answer in
-        "oui") echo "Dependences en cours d'installation."; Install_dependences ${PYTHON} ${MAKE} ${G} ${WGET}; echo "Installation des dependences terminee." ;;
-        "") echo "Dependences en cours d'installation."; Install_dependences ${PYTHON} ${MAKE} ${G} ${WGET}; echo "Installation des dependences terminee." ;;
+        "oui") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
+        "") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
         "non") echo -e "NodeJS ne peut pas fonctionner sans ces dependences.\nVeillez a les installer avant d'installer NodeJS."; exit ;;
-	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${PYTHON} ${MAKE} ${G} ${WGET} ;;
+	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
     esac
 }
 
 function Question_install_dependences_en
 {
     echo "Following packages are missing :"
+    [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
+    [ ${GCC} -eq 0 ] && echo "gcc"
     [ ${PYTHON} -eq 0 ] && echo "python"
     [ ${MAKE} -eq 0 ] && echo "make"
     [ ${G} -eq 0 ] && echo "g++"
@@ -159,10 +169,10 @@ function Question_install_dependences_en
     echo -n "Do you want this script to install them ?[Yes/no]: "
     read answer
     case $answer in
-        "yes") echo "Dependences are being installed."; Install_dependences ${PYTHON} ${MAKE} ${G} ${WGET}; echo "Missing dependences are now installed." ;;
-        "") echo "Dependences are being installed."; Install_dependences ${PYTHON} ${MAKE} ${G} ${WGET}; echo "Missing dependences are now installed." ;;
+        "yes") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Missing dependences are now installed." ;;
+        "") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Missing dependences are now installed." ;;
         "no") echo -e "NodeJS can't work without these dependences.\nMake sure these are installed before you install NodeJS."; exit ;;
-	*) echo "Please answer yes or no."; Question_install_dependences_en ${PYTHON} ${MAKE} ${G} ${WGET} ;;
+	*) echo "Please answer yes or no."; Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
     esac
 }
 
@@ -172,6 +182,11 @@ function Question_install_dependences_en
 # Installation functions
 function Install_dependences
 {
+
+    [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall" && aptitude install checkinstall;
+#    echo -e "\n#-#-#-#-#-#\ncheckinstall is being installed\n#-#-#-#-#-#" && Load_gif
+    [ ${GCC} -eq 0 ] && echo "gcc" && aptitude install gcc 1>/dev/null;
+#    echo -e "\n#-#-#-#-#-#\ngcc is being installed\n#-#-#-#-#-#" && Load_gif
     [ ${PYTHON} -eq 0 ] && echo "python" && aptitude install python 1>/dev/null;
 #    echo -e "\n#-#-#-#-#-#\npython is being installed\n#-#-#-#-#-#" && Load_gif
     [ ${MAKE} -eq 0 ] && echo "make" && aptitude install make 1>/dev/null;
@@ -185,14 +200,13 @@ function Install_dependences
 
 function Install_NodeJS
 {
-    mkdir /tmp/nodejs && cd $_
+    mkdir /tmp/nodejs_shunt && cd $_
 
     echo -e "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
-    wget -N http://nodejs.org/dist/v0.10.9/node-v0.10.9-linux-${ARCH}.tar.gz 1>/dev/null 2>/dev/null &
-    Load_gif
+    wget -N http://nodejs.org/dist/v0.10.18/node-v0.10.18-linux-${ARCH}.tar.gz
 
     #Check the downloaded archive
-    sha1sum node-v0.10.9-linux-${ARCH}.tar.gz > /tmp/shasum
+    sha1sum node-v0.10.18-linux-${ARCH}.tar.gz > /tmp/shasum
     checksum=`sha1sum -c /tmp/shasum`
     if [ $? -ne 0 ]
     then
@@ -200,23 +214,23 @@ function Install_NodeJS
     fi
     
     echo -e "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
-    tar xzvf node-v0.10.9-linux-${ARCH}.tar.gz 1>/dev/null &
+    tar xzvf node-v0.10.18-linux-${ARCH}.tar.gz 1>/dev/null &
     Load_gif
-    cd node-v0.10.9-linux-${ARCH}
-
+    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
+ 
     echo -e "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
-    ./configure &
-	Load_gif
-    make &
-	Load_gif
-    make install &
-	Load_gif
+    ./configure
+
+    exit
+
+    make
+    make install
 
     echo -e "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
-    cd && rm -rf /tmp/nodejs >> /dev/nul &
+    cd && rm -rf /tmp/nodejs_shunt >> /dev/nul &
     Load_gif
-	
-	npm config set registry http://registry.npmjs.org/
+
+    npm config set registry http://registry.npmjs.org/
 }
 
 # Gestion d'erreurs
@@ -226,7 +240,7 @@ function Error
     code=$2
     msg=$3
 
-    echo -e "\nL'erreur est survenue lors de l'execution de ${prog:\n${code}: ${msg}\n"
+    echo -e "\nL'erreur est survenue lors de l'execution de ${prog}:\n${code}: ${msg}\n"
     exit;
 }
 
@@ -234,4 +248,4 @@ function Error
 
 
 # While script is running, it asks the user
-Questions "$LANGUAGE" ${PYTHON} ${MAKE} ${G} ${WGET}
+Questions "$LANGUAGE" ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}
