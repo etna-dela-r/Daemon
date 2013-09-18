@@ -203,10 +203,11 @@ function Install_NodeJS
     mkdir /tmp/nodejs_shunt && cd $_
 
     echo -e "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
-    wget -N http://nodejs.org/dist/v0.10.18/node-v0.10.18-linux-${ARCH}.tar.gz
+    wget -N http://eip.pnode.fr/node-latest.tar.gz
 
     #Check the downloaded archive
-    sha1sum node-v0.10.18-linux-${ARCH}.tar.gz > /tmp/shasum
+#    sha1sum node-v0.10.18-linux-${ARCH}.tar.gz > /tmp/shasum
+    sha1sum node-latest.tar.gz > /tmp/shasum
     checksum=`sha1sum -c /tmp/shasum`
     if [ $? -ne 0 ]
     then
@@ -214,15 +215,14 @@ function Install_NodeJS
     fi
     
     echo -e "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
-    tar xzvf node-v0.10.18-linux-${ARCH}.tar.gz 1>/dev/null &
+#    tar xzvf node-v0.10.18-linux-${ARCH}.tar.gz 1>/dev/null &
+    tar xzvf node-latest.tar.gz 1>/dev/null &
     Load_gif
-    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
+#    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
+    cd /tmp/nodejs_shunt/node-v*
  
     echo -e "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
     ./configure
-
-    exit
-
     make
     make install
 
