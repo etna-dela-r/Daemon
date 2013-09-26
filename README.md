@@ -1,15 +1,20 @@
 Daemon
 ======
 
-Small POC, only working on localhost currently, on port 8080.
+Small POC, only working on localhost currently, on port 8000.
+Using Basic auth for authentication.
 
 Routes
 ------
 2 routes available :
 
-GET /torrents (get all torrents)
+GET /torrents
+
+POST /torrents (torrent: url of the torrent)
 
 GET /torrents/:id
+
+DELETE /torrents/:id
 
 Responses Format
 ----------------
