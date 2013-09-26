@@ -1,240 +1,122 @@
+express = require("express")
+passport = require("passport")
+BasicStrategy = require("passport-http").BasicStrategy
 
-###
-Module dependencies
-###
+#
+# Real persistence is for another day
+# 
+users = [
+  id: 1
+  login: "shunt"
+  password: "secret"
+]
 
-express 	= require 'express'
-app 		= module.exports = express.createServer()
+findUser = (login, cb) ->
+  i = 0
+  len = users.length
 
-RedisStore 	= require('connect-redis')(express)
+  while i < len
+    u = users[i]
+    return cb(null, u)  if u.login is login
+    i++
+  cb null, null
 
-csrf       	= require 'express-csrf'
-
-couchdb    	= require 'felix-couchdb'
-client    	= couchdb.createClient 5984, 'localhost'
-db		= client.db 'blahblahblah-devel'
-
-hash		= require 'node-hash'
-###
-Configuration
-###
-
-app.dynamicHelpers({
-	csrf: csrf.token
-})
-app.dynamicHelpers({
-	flash: (req) ->
-		flash = req.flash()
-		return flash
-})
-app.dynamicHelpers({
-	current_user: (req) -> req.session.user
-})
-
-app.configure(() ->
-  app.set 'views', "#{__dirname}/views"
-  app.use express.logger()
-  app.use express.bodyParser()
-  app.use express.cookieParser()
-  app.use express.session({
-    store: new RedisStore({
-      maxAge: 24 * 60 * 60 * 1000
-    })
-    secret: "superblahblah"
-  })
-  app.use csrf.check()
-  app.use app.router
-  app.use express.methodOverride()
-  app.use express.static("#{__dirname}/public")
+passport.use new BasicStrategy({}, (login, password, done) ->
+  process.nextTick ->
+    findUser login, (err, user) ->
+      return done(err) if err
+      return done(null, false) unless user
+      return done(null, false) unless user.password is password
+      done null, user
 )
 
-app.configure 'development', () ->
-	app.use express.errorHandler({
-		dumpExceptions: true
-		showStack     : true
-	})
-	
-app.configure 'production', () ->
-	app.use express.errorHandler()
-###
-ROUTE: ROOT '/' (GET)
-###
-app.get '/', (req, res) ->
-	if req.session.user
-		req.flash 'success', "Authenticated as #{req.session.user.name}"
-		res.redirect '/dashboard'
+app = express()
 
-	res.render 'index.jade',
-		locals:
-			title: 'Home'
-###
-ROUTE: DASHBOARD '/dashboard' (GET, POST)
-###
-app.get '/dashboard', (req, res) ->
-	if req.session.user
-		res.render 'dashboard/index.jade',
-			locals:
-				title: 'Dashboard'
-	else
-		res.redirect '/login'
+app.configure ->
+    app.use express.logger()
+    app.use express.bodyParser()
+    app.use passport.initialize()
+    app.use app.router
 
-app.post '/dashboard', (req, res) ->
-	params = req.body
-	if req.session.user
-		user = req.session.user
-		console.log params
-	else
-		res.redirect '/login'
-###
-ROUTE: LOGIN '/login' (GET, POST)
-###
-app.get '/login', (req, res) ->
-	if req.session.user
-		req.flash 'success', "Authenticated as #{req.session.user.name}"
-		res.redirect '/dashboard'
-
-	res.render 'index.jade',
-		locals:
-			title: 'Login'
-			
-app.post '/login', (req, res) ->
-	params = req.body
-	if params.commit.login
-		db.getDoc params.user.name, (e, doc) ->
-			if e
-				req.flash 'error', 'User does not exist!'
-				res.redirect '/login'
-			if doc
-				salt = "superblahblah--#{params.user.password}"
-				salted_password = hash.sha1 params.user.password, salt
-				
-				if doc.password is salted_password
-					req.session.regenerate(() ->
-						req.session.user = params.user
-						res.redirect '/dashboard'
-					)
-				else
-					res.redirect '404'
-	else if params.commit.signup
-		res.redirect '/signup'
-###
-ROUTE: LOGOUT '/logout' (GET)
-###
-app.get '/logout', (req, res) ->
-	req.session.destroy(() ->
-		res.redirect '/'
-	)
-	
-###
-ROUTE: SIGNUP '/signup' (GET, POST)
-###
-app.get '/signup', (req, res) ->
-	if req.session.user
-		req.flash 'success', "Autenticated as #{req.session.user.name}"
-		res.redirect '/dashboard'
-		
-	res.render 'users/signup.jade',
-		locals:
-			title: 'Signup'
-			username: ''
-			password: ''
-			password_confirmation: ''
-			email: ''
-
-app.post '/signup', (req, res) ->
-	params = req.body
-	errors = []
-	salt 	 = "superblahblah--#{params.user.password}"
-	salted_password = hash.sha1 params.user.password, salt
-	salted_confirm_password = hash.sha1 params.user.password_confirmation, salt
-	
-	user =
-		name: params.user.name
-		password: salted_password
-		email: params.user.email
-	confirm_password = salted_confirm_password
-
-	create_user = () ->
-		db.exists (e,c) ->
-			if c is true
-				db.saveDoc user.name, couchdb.toJSON(user), (e,c) ->
-					if e
-						req.flash 'error', "Document update conflict. This user exists!"
-						res.redirect 'back'
-					if c
-						req.flash 'success', "SUCCESS"
-						req.session.regenerate(() ->
-							req.session.user = params.user
-							res.redirect '/dashboard'
-						)
-	if errors.length > 0
-		errors.forEach (err) ->
-			req.flash 'error', err
-		res.render 'users/signup.jade',
-			locals:
-				title: "Signup"
-				username: user.name
-				password: ""
-				password_confirmation: ""
-				email: user.email
-	else
-		create_user()
-
-
-
-
-###
-NOW THIS IS UGLY
-###
+#
+# Tr daemon
+#
 
 Transmission = require ('transmission')
 tr = new Transmission({})
 
-Status = ->
-    @get = [
-        "STOPPED",
-        "CHECK_WAIT",
-        "CHECK",
-        "DOWNLOAD_WAIT",
-        "DOWNLOAD",
-        "SEED_WAIT",
-        "SEED",
-        "ISOLATED"
-    ] 
+Status = [
+    "STOPPED",
+    "CHECK_WAIT",
+    "CHECK",
+    "DOWNLOAD_WAIT",
+    "DOWNLOAD",
+    "SEED_WAIT",
+    "SEED",
+    "ISOLATED"
+]
 
 Torrent = (torrent) ->
-    @id = torrent.id;
-    @name = torrent.name;
-    @total_size = torrent.totalSize;
-    @dl_size = torrent.downloadedEver;
-    @dl_rate = torrent.rateDownload;
-    @status = new Status().get[torrent.status];
-    @added_date = torrent.addedDate;
+    @id = torrent.id
+    @name = torrent.name
+    @total_size = torrent.totalSize
+    @dl_size = torrent.downloadedEver
+    @dl_rate = torrent.rateDownload
+    @status = Status[torrent.status]
+    @added_date = torrent.addedDate
  
-app.get '/torrents', (req, res) ->
-    tr.get (err, arg) ->
-        if err
-            console.error err
-        else
-            torrents = new Array()
-            for id of arg.torrents
-                torrents.push new Torrent(arg.torrents[id])
-            console.log "Total torrents found: ", torrents.length
-            console.log "Response: ", torrents
+on_error = (err, res, next) ->
+    console.error err
+    res.statusCode = 500
+    next new Error(err)
+
+not_found = (res) ->
+    res.statusCode = 404
+    res.send
+
+
+app.get '/torrents',
+    passport.authenticate("basic", session: false),
+    (req, res, next) ->
+        tr.get (err, result) ->
+            on_error err, res, next if err
+            torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents
 
-app.get '/torrents/:id', (req, res) ->
-    id = +req.params.id
-    tr.get id, (err, arg) ->
-        if err
-            console.error err
-        else
-            torrents = new Array()
-            for id of arg.torrents
-                  torrents.push new Torrent(arg.torrents[id])
-            torrent = torrents[0]
-            console.log "Response: ", torrent
-            res.send torrent
+app.post '/torrents/',
+    passport.authenticate("basic", session: false),
+    (req, res, next) ->
+        torrent = req.body.torrent
+        tr.add torrent, (err, result) ->
+            error err, res, next if err
+            tr.get id (_e, _r) ->
+                on_error _e, next if _e
+                torrents = (new Torrent(_r.torrents[id]) for id of _r.torrents)
+                res.send torrents[0]
+                
 
-app.listen 8000
-console.log "Express server listening on port #{app.address().port}"
+app.get '/torrents/:id',
+    passport.authenticate("basic", session: false),
+    (req, res, next) ->
+        id = +req.params.id
+        tr.get id, (err, result) ->
+            on_error err, res, next if err
+            not_found res unless result.torrents.length
+            torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
+            res.send torrents[0]
+
+app.delete '/torrents/:id',
+    passport.authenticate("basic", session: false),
+    (req, res, next) ->
+        id = +req.params.id
+        tr.remove id, (err, result) ->
+            on_error err, res, next if err
+
+#
+# Start listening
+#
+http = require ('http')
+
+server = http.createServer(app)
+server.listen 8000
+console.log "Express server listening on port ", server.address().port

@@ -8,15 +8,11 @@
         "url": "git://github.com/etna-bertra-n/Daemon.git"
     },
     "dependencies": {
-        "node-dev": "x",
-        "coffee-script": "x",
+        "coffee-script": "1.6.3",
         "transmission": ">= 0.2.5",
-        "express": "2.x",
-        "promised-io" : "x",
-        "connect-redis": "x",
-        "express-csrf": "x",
-        "felix-couchdb": "x",
-        "node-hash": "x"
+        "express": "3.4.x",
+        "passport": "0.1.17",
+        "passport-http": "0.2.2"
     },
     "engines": {}
 }
