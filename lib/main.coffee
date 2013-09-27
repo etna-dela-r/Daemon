@@ -3,45 +3,76 @@ passport = require("passport")
 BasicStrategy = require("passport-http").BasicStrategy
 
 #
-# Real persistence is for another day
+# User persistence
 # 
-users = [
-  id: 1
-  login: "shunt"
-  password: "secret"
-]
+Datastore = require('nedb')
+db = 
+    users: new Datastore
+        filename:"users.db"
+        autoload: true
+    servers: new Datastore
+        filename:"servers.db"
+        autoload: true
+
+# Create a user if none exists
+db.users.findOne { _id: { $exists: true } }, (err, doc) ->
+    unless doc
+        db.users.insert 
+            login: "shunt"
+            password: "secret",
 
 findUser = (login, cb) ->
-  i = 0
-  len = users.length
+    db.users.findOne { login: login }, cb
 
-  while i < len
-    u = users[i]
-    return cb(null, u)  if u.login is login
-    i++
-  cb null, null
-
+#
+# Auth (using Basic for the time being)
+#
 passport.use new BasicStrategy({}, (login, password, done) ->
-  process.nextTick ->
-    findUser login, (err, user) ->
-      return done(err) if err
-      return done(null, false) unless user
-      return done(null, false) unless user.password is password
-      done null, user
+    process.nextTick ->
+        findUser login, (err, user) ->
+            return done(err) if err
+            return done(null, false) unless user
+            return done(null, false) unless user.password is password
+            done null, user
 )
 
+#
+# utils and middleware
+#
+
+# last non-error-handling middleware used, we assume 404
+notFound = (req, res, next) ->
+    console.log "ici"
+    res.send 404
+    
+logErrors = (err, req, res, next) ->
+    console.error err
+    next err
+
+errorHandler = (err, req, res, next) ->
+    code = err.status || 500
+    code = 500 if code < 400
+    res.send code,
+        error: err
+
+#
+# middleware uses
+#
 app = express()
 
 app.configure ->
     app.use express.logger()
+    app.use express.methodOverride()
     app.use express.bodyParser()
     app.use passport.initialize()
     app.use app.router
+    app.use notFound
+    app.use logErrors
+    app.use errorHandler
 
 #
 # Tr daemon
 #
-
 Transmission = require ('transmission')
 tr = new Transmission({})
 
@@ -64,22 +95,15 @@ Torrent = (torrent) ->
     @dl_rate = torrent.rateDownload
     @status = Status[torrent.status]
     @added_date = torrent.addedDate
- 
-on_error = (err, res, next) ->
-    console.error err
-    res.statusCode = 500
-    next new Error(err)
 
-not_found = (res) ->
-    res.statusCode = 404
-    res.send
-
-
+#
+# Routes
+#
 app.get '/torrents',
     passport.authenticate("basic", session: false),
     (req, res, next) ->
         tr.get (err, result) ->
-            on_error err, res, next if err
+            next(err) if err
             torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents
 
@@ -88,35 +112,43 @@ app.post '/torrents/',
     (req, res, next) ->
         torrent = req.body.torrent
         tr.add torrent, (err, result) ->
-            error err, res, next if err
-            tr.get id (_e, _r) ->
-                on_error _e, next if _e
-                torrents = (new Torrent(_r.torrents[id]) for id of _r.torrents)
+            next(err) if err
+            tr.get id (e, r) ->
+                next e if e
+                torrents = (new Torrent(r.torrents[id]) for id of r.torrents)
                 res.send torrents[0]
                 
-
 app.get '/torrents/:id',
     passport.authenticate("basic", session: false),
     (req, res, next) ->
         id = +req.params.id
         tr.get id, (err, result) ->
-            on_error err, res, next if err
-            not_found res unless result.torrents.length
+            next() unless result.torrents.length
+            next(err) if err
             torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents[0]
+
+app.put '/torrents/:id',
+    passport.authenticate("basic", session: false),
+    (req, res, next) ->
+        id = +req.params.id
+        tr.remove id, (err, result) ->
+            next(err) if err
+            res.send 200
 
 app.delete '/torrents/:id',
     passport.authenticate("basic", session: false),
     (req, res, next) ->
         id = +req.params.id
         tr.remove id, (err, result) ->
-            on_error err, res, next if err
+            next(err) if err
+            res.send 200
 
 #
 # Start listening
 #
-http = require ('http')
+http = require('http')
 
 server = http.createServer(app)
-server.listen 8000
-console.log "Express server listening on port ", server.address().port
+server.listen 8000, () ->
+    console.log "Express server listening on port ", server.address().port
