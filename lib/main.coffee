@@ -42,7 +42,6 @@ ensureAuthentication = passport.authenticate("basic" , session: false)
 
 # last non-error-handling middleware used, we assume 404
 notFound = (req, res, next) ->
-    console.log "ici"
     res.send 404
     
 logErrors = (err, req, res, next) ->
@@ -105,14 +104,11 @@ app.get '/torrents', ensureAuthentication, (req, res, next) ->
             torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents
 
-app.post '/torrents/', ensureAuthentication, (req, res, next) ->
+app.post '/torrents', ensureAuthentication, (req, res, next) ->
         torrent = req.body.torrent
         tr.add torrent, (err, result) ->
             next(err) if err
-            tr.get id (e, r) ->
-                next e if e
-                torrents = (new Torrent(r.torrents[id]) for id of r.torrents)
-                res.send torrents[0]
+            res.send 200
                 
 app.get '/torrents/:id', ensureAuthentication, (req, res, next) ->
         id = +req.params.id
