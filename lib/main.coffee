@@ -21,15 +21,12 @@ db.users.findOne { _id: { $exists: true } }, (err, doc) ->
             login: "shunt"
             password: "secret",
 
-findUser = (login, cb) ->
-    db.users.findOne { login: login }, cb
-
 #
 # Auth (using Basic for the time being)
 #
 passport.use new BasicStrategy({}, (login, password, done) ->
     process.nextTick ->
-        findUser login, (err, user) ->
+        db.users.findOne login: login, (err, user) ->
             return done(err) if err
             return done(null, false) unless user
             return done(null, false) unless user.password is password
