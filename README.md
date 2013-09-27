@@ -15,7 +15,9 @@ POST /torrents Add a new torrent (torrent: url of the torrent)
 GET /torrents/:id Get torrent current state
 
 GET /torrents/:id/start Start the torrent
+
 GET /torrents/:id/startNow Byoass the download queue and start the torrent immediatly
+
 GET /torrents/:id/stop Stop the torrent
 
 DELETE /torrents/:id Delete the torrent
