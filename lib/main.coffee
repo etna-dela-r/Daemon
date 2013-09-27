@@ -40,6 +40,9 @@ passport.use new BasicStrategy({}, (login, password, done) ->
 # utils and middleware
 #
 
+# used as a route middleware
+ensureAuthentication = passport.authenticate("basic" , session: false)
+
 # last non-error-handling middleware used, we assume 404
 notFound = (req, res, next) ->
     console.log "ici"
@@ -99,17 +102,13 @@ Torrent = (torrent) ->
 #
 # Routes
 #
-app.get '/torrents',
-    passport.authenticate("basic", session: false),
-    (req, res, next) ->
+app.get '/torrents', ensureAuthentication, (req, res, next) ->
         tr.get (err, result) ->
             next(err) if err
             torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents
 
-app.post '/torrents/',
-    passport.authenticate("basic", session: false),
-    (req, res, next) ->
+app.post '/torrents/', ensureAuthentication, (req, res, next) ->
         torrent = req.body.torrent
         tr.add torrent, (err, result) ->
             next(err) if err
@@ -118,9 +117,7 @@ app.post '/torrents/',
                 torrents = (new Torrent(r.torrents[id]) for id of r.torrents)
                 res.send torrents[0]
                 
-app.get '/torrents/:id',
-    passport.authenticate("basic", session: false),
-    (req, res, next) ->
+app.get '/torrents/:id', ensureAuthentication, (req, res, next) ->
         id = +req.params.id
         tr.get id, (err, result) ->
             next() unless result.torrents.length
@@ -128,19 +125,28 @@ app.get '/torrents/:id',
             torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
             res.send torrents[0]
 
-app.put '/torrents/:id',
-    passport.authenticate("basic", session: false),
-    (req, res, next) ->
+app.get '/torrents/:id/start', ensureAuthentication, (req, res, next) ->
         id = +req.params.id
-        tr.remove id, (err, result) ->
+        tr.start id, (err, result) ->
             next(err) if err
-            res.send 200
+            res.send result.torrent
 
-app.delete '/torrents/:id',
-    passport.authenticate("basic", session: false),
-    (req, res, next) ->
+app.get '/torrents/:id/startNow', ensureAuthentication, (req, res, next) ->
         id = +req.params.id
-        tr.remove id, (err, result) ->
+        tr.startNow id, (err, result) ->
+            next(err) if err
+            res.send result.torrent
+
+app.get '/torrents/:id/stop', ensureAuthentication, (req, res, next) ->
+        id = +req.params.id
+        tr.stop id, (err, result) ->
+            next(err) if err
+            res.send result.torrent
+
+app.delete '/torrents/:id', ensureAuthentication, (req, res, next) ->
+        id = +req.params.id
+        # do not remove local datas
+        tr.remove id, false, (err, result) ->
             next(err) if err
             res.send 200
 
