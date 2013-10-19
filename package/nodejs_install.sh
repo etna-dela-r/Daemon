@@ -3,7 +3,7 @@
 # This script will be included in a deb archive as its final form
 # Some translations are still missing as well.
 
-source load_gif.sh
+. ./load_gif.sh
 
 # Default Language if not set
 LANGUAGE=${1-"en"}
@@ -64,6 +64,8 @@ dpkg --get-selections | grep -e '^g++\s' 1>/dev/null && G=1 || G=0
 # Check if wget is installed
 dpkg --get-selections | grep -e '^wget\s' 1>/dev/null && WGET=1 || WGET=0
 
+# Check if transmission is installed
+dpkg --get-selections | grep -e '^transmission\s' 1>/dev/null && TRANSMISSION=1 || TRANSMISSION=0
 
 
 # Must be root to install something, comment to unuse
@@ -80,29 +82,29 @@ then
 fi
 
 # Questions asked to the user
-function Questions
+Questions ()
 {
 if [ "${LANGUAGE}" = "fr" ]
 then
-    echo "L'installation de NodeJS a besoin des paquets python, make, g++ et wget pour fonctionner correctement."
-    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 ]
+    echo "L'installation de NodeJS a besoin des paquets python, make, g++, wget et transmission pour fonctionner correctement."
+    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 -a ${TRANSMISSION} -eq 1 ]
     then
 	Question_install_node 0;
     else
-	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
+	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION};
     fi
 else
     echo "NodeJS installation needs python, make and g++ packages to run."
-    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 ]
+    if [ ${CHECKINSTALL} -eq 1 -a ${PYTHON} -eq 1 -a ${MAKE} -eq 1 -a ${G} -eq 1 -a ${GCC} -eq 1 -a ${WGET} -eq 1 -a ${TRANSMISSION} -eq 1 ]
     then
 	Question_install_node_en 0;
     else
-	Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
+	Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION};
     fi
 fi
 }
 
-function Question_install_node
+Question_install_node ()
 {
     if [ $1 -eq 0 ]
     then
@@ -120,7 +122,7 @@ function Question_install_node
     esac
 }
 
-function Question_install_node_en
+Question_install_node_en ()
 {
     if [ $1 -eq 0 ]
     then
@@ -138,7 +140,7 @@ function Question_install_node_en
     esac
 }
 
-function Question_install_dependences
+Question_install_dependences ()
 {
     echo "Les paquets suivants sont manquants :"
     [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
@@ -147,17 +149,18 @@ function Question_install_dependences
     [ ${MAKE} -eq 0 ] && echo "make"
     [ ${G} -eq 0 ] && echo "g++"
     [ ${WGET} -eq 0 ] && echo "wget"
+    [ ${TRANSMISSION} -eq 0 ] && echo "transmission"
     echo -n "Souhaitez-vous que ce script les installe ?[Oui|non]: "
     read answer
     case $answer in
-        "oui") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
-        "") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
+        "oui") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Installation des dependences terminee." ;;
+        "") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Installation des dependences terminee." ;;
         "non") echo -e "NodeJS ne peut pas fonctionner sans ces dependences.\nVeillez a les installer avant d'installer NodeJS."; exit ;;
-	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
+	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION} ;;
     esac
 }
 
-function Question_install_dependences_en
+Question_install_dependences_en ()
 {
     echo "Following packages are missing :"
     [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
@@ -166,13 +169,14 @@ function Question_install_dependences_en
     [ ${MAKE} -eq 0 ] && echo "make"
     [ ${G} -eq 0 ] && echo "g++"
     [ ${WGET} -eq 0 ] && echo "wget"
+    [ ${TRANSMISSION} -eq 0 ] && echo "transmission"
     echo -n "Do you want this script to install them ?[Yes/no]: "
     read answer
     case $answer in
-        "yes") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Missing dependences are now installed." ;;
-        "") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Missing dependences are now installed." ;;
+        "yes") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Missing dependences are now installed." ;;
+        "") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Missing dependences are now installed." ;;
         "no") echo -e "NodeJS can't work without these dependences.\nMake sure these are installed before you install NodeJS."; exit ;;
-	*) echo "Please answer yes or no."; Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
+	*) echo "Please answer yes or no."; Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION} ;;
     esac
 }
 
@@ -180,7 +184,7 @@ function Question_install_dependences_en
 
 
 # Installation functions
-function Install_dependences
+Install_dependences ()
 {
 
     [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall" && aptitude install checkinstall;
@@ -195,10 +199,12 @@ function Install_dependences
 #    echo -e "\n#-#-#-#-#-#\ng++ is being installed\n#-#-#-#-#-#" && Load_gif
     [ ${WGET} -eq 0 ] && echo "wget" && aptitude install wget;
 #    echo -e "\n#-#-#-#-#-#\nwget is being installed\n#-#-#-#-#-#" && Load_gif
+    [ ${TRANSMISSION} -eq 0 ] && echo "transmission" && aptitude install transmission;
+#    echo -e "\n#-#-#-#-#-#\ntransmission is being installed\n#-#-#-#-#-#" && Load_gif
     Question_install_node 1;
 }
 
-function Install_NodeJS
+Install_NodeJS ()
 {
     mkdir /tmp/nodejs_shunt && cd $_
 
@@ -234,7 +240,7 @@ function Install_NodeJS
 }
 
 # Gestion d'erreurs
-function Error
+Error ()
 {
     prog=$1
     code=$2
@@ -248,4 +254,4 @@ function Error
 
 
 # While script is running, it asks the user
-Questions "$LANGUAGE" ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}
+Questions "$LANGUAGE" ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-function Load_gif
+Load_gif ()
 {
     pid=$!
 
