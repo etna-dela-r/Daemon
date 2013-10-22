@@ -47,25 +47,29 @@ then
 fi
 
 # Check if checkinstall is installed
-dpkg --get-selections | grep -e '^checkinstall\s' 1>/dev/null && CHECKINSTALL=1 || CHECKINSTALL=0
+dpkg --get-selections | grep -e '^checkinstall\s' | grep -v deinstall 1>/dev/null && CHECKINSTALL=1 || CHECKINSTALL=0
 
 # Check if gcc is installed
-dpkg --get-selections | grep -e '^gcc\s' 1>/dev/null && GCC=1 || GCC=0
+dpkg --get-selections | grep -e '^gcc\s' | grep -v deinstall 1>/dev/null && GCC=1 || GCC=0
 
 # Check if python is installed
-dpkg --get-selections | grep -e '^python\s' 1>/dev/null && PYTHON=1 || PYTHON=0
+dpkg --get-selections | grep -e '^python\s' | grep -v deinstall  1>/dev/null && PYTHON=1 || PYTHON=0
 
 # Check if make is installed
-dpkg --get-selections | grep -e '^make\s' 1>/dev/null && MAKE=1 || MAKE=0
+dpkg --get-selections | grep -e '^make\s' | grep -v deinstall 1>/dev/null && MAKE=1 || MAKE=0
 
 # Check if g++ is installed
-dpkg --get-selections | grep -e '^g++\s' 1>/dev/null && G=1 || G=0
+dpkg --get-selections | grep -e '^g++\s' | grep -v deinstall 1>/dev/null && G=1 || G=0
 
 # Check if wget is installed
-dpkg --get-selections | grep -e '^wget\s' 1>/dev/null && WGET=1 || WGET=0
+dpkg --get-selections | grep -e '^wget\s' | grep -v deinstall 1>/dev/null && WGET=1 || WGET=0
 
 # Check if transmission is installed
-dpkg --get-selections | grep -e '^transmission-daemon\s' 1>/dev/null && TRANSMISSION=1 || TRANSMISSION=0
+dpkg --get-selections | grep -e '^transmission-daemon\s' | grep -v deinstall 1>/dev/null && TRANSMISSION=1 || TRANSMISSION=0
+
+# Assume that dependencies are not installed at first
+DEPENDENCES=0;
+
 
 
 # Must be root to install something, comment to unuse
@@ -81,6 +85,11 @@ then
     fi
 fi
 
+
+
+
+
+
 # Questions asked to the user
 Questions ()
 {
@@ -93,7 +102,7 @@ then
 	then
 	    Question_install_transmission;
 	fi
-	Question_install_node 0;
+	Question_install_node;
     else
 	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
     fi
@@ -105,7 +114,7 @@ else
 	then
 	    Question_install_transmission;
 	fi
-	Question_install_node_en 0;
+	Question_install_node_en;
     else
 	Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION};
     fi
@@ -114,37 +123,27 @@ fi
 
 Question_install_node ()
 {
-    if [ $1 -eq 0 ]
-    then
-	echo -ne "Ces quatre paquets sont deja installes.\nSouhaitez-vous proceder a l'installation de NodeJS ?[Oui|non]: ";
-    else
-	echo -ne "Ces quatre paquets ont ete installes.\nSouhaitez-vous proceder a l'installation de NodeJS ?[Oui|non]: ";
-    fi
+    echo -n "Souhaitez-vous proceder a l'installation de NodeJS ?[Oui|non]: ";
     read answer
     answer=`echo "${answer}" | awk '{print tolower($0)}'`
     case $answer in
         "oui") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
         "") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
         "non") echo "Vous avez quitte sans installer NodeJs."; exit ;;
-	*) echo "Veuillez repondre par oui ou non."; Question_install_node $1 ;;
+	*) echo "Veuillez repondre par oui ou non."; Question_install_node ;;
     esac
 }
 
 Question_install_node_en ()
 {
-    if [ $1 -eq 0 ]
-    then
-	echo -ne "These four packages are already installed.\nWould you like to install NodeJS now ?[Yes|no]: ";
-    else
-	echo -ne "These four packages have been installed.\nWould you like to install NodeJS now ?[yes|no]: ";
-    fi
+    echo -n "Would you like to install NodeJS now ?[yes|no]: ";
     read answer
     answer=`echo "${answer}" | awk '{print tolower($0)}'`
     case $answer in
         "yes") echo "NodeJS is being installed"; Install_NodeJS; echo "NodeJS is now installed."; exit ;;
         "") echo "NodeJS is being installed"; Install_NodeJS; echo "NodeJS is now installed."; exit ;;
         "no") echo "You quitted without installing NodeJs."; exit ;;
-	*) echo "Please answer yes or no."; Question_install_node_en $1 ;;
+	*) echo "Please answer yes or no."; Question_install_node_en ;;
     esac
 }
 
@@ -188,15 +187,25 @@ Question_install_dependences_en ()
 
 Question_install_transmission ()
 {
-    echo "Would you like to install transmission-daemon (BitTorrent client)? [Yes/no]: "
+    if [ ${DEPENDENCES} -eq 0 ]
+    then
+	printf "These four packages are already installed.\n\n";
+    else
+	printf "These four packages have been installed.\n\n";
+    fi
+    echo -n "Would you like to install transmission-daemon (BitTorrent client)? [Yes/no]: "
     read answer
     case $answer in
-	"yes") echo "transmission-daemon is being installed."; aptitude -y install transmission-daemon; echo "transmission-daemon is now installed" ;;
-	"no") echo -e "You choosed not to install transmission-daemon. You can still install it by yourself whith the command:\n\taptitude install transmission-daemon"; Question_install_node 1 ;;
-	"") echo "transmission-daemon is being installed."; aptitude -y install transmission-daemon; echo "transmission-daemon is now installed" ;;
+	"yes") echo "transmission-daemon is being installed."; Install_transmission; echo "transmission-daemon is now installed" ;;
+	"no") printf "You choosed not to install transmission-daemon. You can still install it by yourself whith the command:\n\taptitude install transmission-daemon\n\n" ;;
+	"") echo "transmission-daemon is being installed."; Install_transmission; echo "transmission-daemon is now installed.\n\n" ;;
 	*) echo "Please answer yes or no."; Question_install_transmission ;;
     esac
+
+    Question_install_node_en
 }
+
+
 
 
 
@@ -219,20 +228,26 @@ Install_dependences ()
 #    echo -e "\n#-#-#-#-#-#\nwget is being installed\n#-#-#-#-#-#" && Load_gif
 #    [ ${TRANSMISSION} -eq 0 ] && echo "transmission" && aptitude install transmission;
 #    echo -e "\n#-#-#-#-#-#\ntransmission is being installed\n#-#-#-#-#-#" && Load_gif
+    DEPENDENCES=1
 
-   if [ ${TRANSMISSION} -eq 0 ]
-   then
-       Question_install_transmission;
-   else
-       Question_install_node 1;
-   fi
+    if [ ${TRANSMISSION} -eq 0 ]
+    then
+	Question_install_transmission;
+    else
+	Question_install_node_en;
+    fi
+}
+
+Install_transmission ()
+{
+    aptitude -y install transmission-daemon;
 }
 
 Install_NodeJS ()
 {
     mkdir /tmp/nodejs_shunt && cd $_
 
-    echo -e "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
+    printf "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
     wget -N http://eip.pnode.fr/node-latest.tar.gz
 
     #Check the downloaded archive
@@ -244,19 +259,19 @@ Install_NodeJS ()
 	Error "sha1sum" $? $checksum
     fi
     
-    echo -e "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
+    printf "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
 #    tar xzvf node-v0.10.18-linux-${ARCH}.tar.gz 1>/dev/null &
     tar xzvf node-latest.tar.gz 1>/dev/null &
     Load_gif
 #    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
     cd /tmp/nodejs_shunt/node-v*
  
-    echo -e "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
+    printf "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
     ./configure
     make
     make install
 
-    echo -e "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
+    printf "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
     cd
     rm -rf /tmp/nodejs_shunt >> /dev/nul &
     Load_gif
@@ -271,7 +286,7 @@ Error ()
     code=$2
     msg=$3
 
-    echo -e "\nL'erreur est survenue lors de l'execution de ${prog}:\n${code}: ${msg}\n"
+    printf "\nL'erreur est survenue lors de l'execution de ${prog}:\n${code}: ${msg}\n"
     exit;
 }
 
