@@ -1,9 +1,7 @@
-#!/bin/bash
+#!/bin/sh
 
 # This script will be included in a deb archive as its final form
 # Some translations are still missing as well.
-
-. ./load_gif.sh
 
 # Default Language if not set
 LANGUAGE=${1-"en"}
@@ -279,6 +277,10 @@ Install_NodeJS ()
     npm config set registry http://registry.npmjs.org;
 }
 
+
+
+
+
 # Gestion d'erreurs
 Error ()
 {
@@ -290,6 +292,27 @@ Error ()
     exit;
 }
 
+
+
+
+# Outils
+Load_gif ()
+{
+    pid=$!
+
+    while [ -d /proc/${pid} ];
+    do
+        echo -ne "\r|"
+        sleep 0.2
+        echo -ne "\r/"
+        sleep 0.2
+        echo -ne "\r-"
+        sleep 0.2
+        echo -ne "\r\\"
+        sleep 0.2
+    done
+    echo -ne "\r ";
+}
 
 
 
