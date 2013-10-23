@@ -243,7 +243,10 @@ Install_transmission ()
 
 Install_NodeJS ()
 {
-    mkdir /tmp/nodejs_shunt && cd $_
+    TMPDIR=/tmp/nodejs_shunt
+
+    mkdir $TMPDIR
+    cd $TMPDIR
 
     printf "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
     wget -N http://eip.pnode.fr/node-latest.tar.gz
@@ -262,7 +265,7 @@ Install_NodeJS ()
     tar xzvf node-latest.tar.gz 1>/dev/null &
     Load_gif
 #    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
-    cd /tmp/nodejs_shunt/node-v*
+    cd $TMPDIR/node-v*
  
     printf "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
     ./configure
@@ -271,7 +274,7 @@ Install_NodeJS ()
 
     printf "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
     cd
-    rm -rf /tmp/nodejs_shunt >> /dev/nul &
+    rm -rf $TMPDIR >> /dev/nul &
     Load_gif
 
     npm config set registry http://registry.npmjs.org;
