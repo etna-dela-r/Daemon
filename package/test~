@@ -1,5 +1,0 @@
-echo -ne "Coucou mon chou \n\ntest"
-
-echo "ploploplpop\n\ncoucou"
-
-printf "Hello lasagnes\n\ntest2"

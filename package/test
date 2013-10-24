@@ -1,7 +1,0 @@
-echo -ne "Coucou mon chou \n\ntest"
-
-echo -n "ploploplpop\n\ncoucou"
-read answer
-echo $answer
-
-printf "Hello lasagnes\n\ntest2\n"
