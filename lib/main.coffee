@@ -38,7 +38,7 @@ passport.use new BasicStrategy({}, (login, password, done) ->
 #
 
 # used as a route middleware
-ensureAuthentication = passport.authenticate("basic" , session: false)
+auth = passport.authenticate("basic" , session: false)
 
 # last non-error-handling middleware used, we assume 404
 notFound = (req, res, next) ->
@@ -70,84 +70,9 @@ app.configure ->
     app.use errorHandler
 
 #
-# Tr daemon
-#
-Transmission = require ('transmission')
-tr = new Transmission({})
-
-Status = [
-    "STOPPED",
-    "CHECK_WAIT",
-    "CHECK",
-    "DOWNLOAD_WAIT",
-    "DOWNLOAD",
-    "SEED_WAIT",
-    "SEED",
-    "ISOLATED"
-]
-
-Torrent = (torrent) ->
-    @id = torrent.id
-    @name = torrent.name
-    @total_size = torrent.totalSize
-    @dl_size = torrent.downloadedEver
-    @dl_rate = torrent.rateDownload
-    @status = Status[torrent.status]
-    @added_date = torrent.addedDate
-
-#
 # Routes
 #
-app.get '/torrents', ensureAuthentication, (req, res, next) ->
-        tr.get (err, result) ->
-            next(err) if err
-            torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
-            res.send torrents
+routes = require './routes'
+routes app, auth
 
-app.post '/torrents', ensureAuthentication, (req, res, next) ->
-        torrent = req.body.torrent
-        tr.add torrent, (err, result) ->
-            next(err) if err
-            res.send 200
-                
-app.get '/torrents/:id', ensureAuthentication, (req, res, next) ->
-        id = +req.params.id
-        tr.get id, (err, result) ->
-            next() unless result.torrents.length
-            next(err) if err
-            torrents = (new Torrent(result.torrents[id]) for id of result.torrents)
-            res.send torrents[0]
-
-app.get '/torrents/:id/start', ensureAuthentication, (req, res, next) ->
-        id = +req.params.id
-        tr.start id, (err, result) ->
-            next(err) if err
-            res.send result.torrent
-
-app.get '/torrents/:id/startNow', ensureAuthentication, (req, res, next) ->
-        id = +req.params.id
-        tr.startNow id, (err, result) ->
-            next(err) if err
-            res.send result.torrent
-
-app.get '/torrents/:id/stop', ensureAuthentication, (req, res, next) ->
-        id = +req.params.id
-        tr.stop id, (err, result) ->
-            next(err) if err
-            res.send result.torrent
-
-app.delete '/torrents/:id', ensureAuthentication, (req, res, next) ->
-        id = +req.params.id
-        # do not remove local datas
-        tr.remove id, false, (err, result) ->
-            next(err) if err
-            res.send 200
-
-#
-# Start listening
-#
-http = require('http')
-
-server = http.createServer(app)
-server.listen 8000, () ->
-    console.log "Express server listening on port ", server.address().port
+module.exports = app
