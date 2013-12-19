@@ -27,7 +27,7 @@ fi
 # Usage
 if [ $# -gt 1 -o -n "${IS_DIGIT}" ] || [ "${LANGUAGE}" != "fr" -a "${LANGUAGE}" != "en" ]
 then
-    echo "Usage: ${0} [fr|en]";
+    echo "Usage: ${0} [EN|fr]";
     exit;
 fi
 
@@ -102,7 +102,7 @@ then
 	fi
 	Question_install_node;
     else
-	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET};
+	Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION};
     fi
 else
     echo "NodeJS installation needs python, make and g++ packages to run."
@@ -110,26 +110,13 @@ else
     then
 	if [ ${TRANSMISSION} -eq 0 ]
 	then
-	    Question_install_transmission;
+	    Question_install_transmission_en;
 	fi
 	Question_install_node_en;
     else
 	Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION};
     fi
 fi
-}
-
-Question_install_node ()
-{
-    echo -n "Souhaitez-vous proceder a l'installation de NodeJS ?[Oui|non]: ";
-    read answer
-    answer=`echo "${answer}" | awk '{print tolower($0)}'`
-    case $answer in
-        "oui") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
-        "") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
-        "non") echo "Vous avez quitte sans installer NodeJs."; exit ;;
-	*) echo "Veuillez repondre par oui ou non."; Question_install_node ;;
-    esac
 }
 
 Question_install_node_en ()
@@ -145,22 +132,16 @@ Question_install_node_en ()
     esac
 }
 
-Question_install_dependences ()
+Question_install_node ()
 {
-    echo "Les paquets suivants sont manquants :"
-    [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
-    [ ${GCC} -eq 0 ] && echo "gcc"
-    [ ${PYTHON} -eq 0 ] && echo "python"
-    [ ${MAKE} -eq 0 ] && echo "make"
-    [ ${G} -eq 0 ] && echo "g++"
-    [ ${WGET} -eq 0 ] && echo "wget"
-    echo -n "Souhaitez-vous que ce script les installe ?[Oui|non]: "
+    echo -n "Souhaitez-vous proceder a l'installation de NodeJS ?[Oui|non]: ";
     read answer
+    answer=`echo "${answer}" | awk '{print tolower($0)}'`
     case $answer in
-        "oui") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
-        "") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Installation des dependences terminee." ;;
-        "non") echo -e "NodeJS ne peut pas fonctionner sans ces dependences.\nVeillez a les installer avant d'installer NodeJS."; exit ;;
-	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
+        "oui") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
+        "") echo "NodeJS est en cours d'installation"; Install_NodeJS; echo "NodeJS est maintenant installe."; exit ;;
+        "non") echo "Vous avez quitte sans installer NodeJs."; exit ;;
+	*) echo "Veuillez repondre par oui ou non."; Question_install_node ;;
     esac
 }
 
@@ -176,20 +157,39 @@ Question_install_dependences_en ()
     echo -n "Do you want this script to install them ?[Yes/no]: "
     read answer
     case $answer in
-        "yes") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET}; echo "Missing dependences are now installed." ;;
+        "yes") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Missing dependences are now installed." ;;
         "") echo "Dependences are being installed."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Missing dependences are now installed." ;;
         "no") echo -e "NodeJS can't work without these dependences.\nMake sure these are installed before you install NodeJS."; exit ;;
-	*) echo "Please answer yes or no."; Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ;;
+	*) echo "Please answer yes or no."; Question_install_dependences_en ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION} ;;
     esac
 }
 
-Question_install_transmission ()
+Question_install_dependences ()
+{
+    echo "Les paquets suivants sont manquants :"
+    [ ${CHECKINSTALL} -eq 0 ] && echo "checkinstall"
+    [ ${GCC} -eq 0 ] && echo "gcc"
+    [ ${PYTHON} -eq 0 ] && echo "python"
+    [ ${MAKE} -eq 0 ] && echo "make"
+    [ ${G} -eq 0 ] && echo "g++"
+    [ ${WGET} -eq 0 ] && echo "wget"
+    echo -n "Souhaitez-vous que ce script les installe ?[Oui|non]: "
+    read answer
+    case $answer in
+        "oui") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Installation des dependences terminee." ;;
+        "") echo "Dependences en cours d'installation."; Install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION}; echo "Installation des dependences terminee." ;;
+        "non") echo -e "NodeJS ne peut pas fonctionner sans ces dependences.\nVeillez a les installer avant d'installer NodeJS."; exit ;;
+	*) echo "Veuillez repondre par oui ou non."; Question_install_dependences ${CHECKINSTALL} ${PYTHON} ${MAKE} ${G} ${GCC} ${WGET} ${TRANSMISSION} ;;
+    esac
+}
+
+Question_install_transmission_en ()
 {
     if [ ${DEPENDENCES} -eq 0 ]
     then
-	printf "These four packages are already installed.\n\n";
+	printf "These packages are already installed.\n\n";
     else
-	printf "These four packages have been installed.\n\n";
+	printf "These packages have been installed.\n\n";
     fi
     echo -n "Would you like to install transmission-daemon (BitTorrent client)? [Yes/no]: "
     read answer
@@ -197,12 +197,31 @@ Question_install_transmission ()
 	"yes") echo "transmission-daemon is being installed."; Install_transmission; echo "transmission-daemon is now installed" ;;
 	"no") printf "You choosed not to install transmission-daemon. You can still install it by yourself whith the command:\n\taptitude install transmission-daemon\n\n" ;;
 	"") echo "transmission-daemon is being installed."; Install_transmission; echo "transmission-daemon is now installed.\n\n" ;;
-	*) echo "Please answer yes or no."; Question_install_transmission ;;
+	*) echo "Please answer yes or no."; Question_install_transmission_en ;;
     esac
 
     Question_install_node_en
 }
 
+Question_install_transmission ()
+{
+    if [ ${DEPENDENCES} -eq 0 ]
+    then
+	printf "Ces paquets sont deja installes.\n\n";
+    else
+	printf "Ces paquets ont été installes.\n\n";
+    fi
+    echo -n "Souhaitez-vous installer transmission-daemon (client BitTorrent)? [Oui/non]: "
+    read answer
+    case $answer in
+	"oui") echo "transmission-daemon est en cours d'installation."; Install_transmission; echo "transmission-daemon est maintenant installe" ;;
+	"non") printf "Vous avez choisi de ne pas installer transmission-daemon. Vous pouvez cependant decider de l'installer par vous-meme via la commande :\n\taptitude install transmission-daemon\n\n" ;;
+	"") echo "transmission-daemon est en cours d'installation."; Install_transmission; echo "transmission-daemon est maintenant installe.\n\n" ;;
+	*) echo "Repondez par oui ou non."; Question_install_transmission ;;
+    esac
+
+    Question_install_node
+}
 
 
 
@@ -228,11 +247,21 @@ Install_dependences ()
 #    echo -e "\n#-#-#-#-#-#\ntransmission is being installed\n#-#-#-#-#-#" && Load_gif
     DEPENDENCES=1
 
-    if [ ${TRANSMISSION} -eq 0 ]
+    if [ "${LANGUAGE}" = "en" ]
     then
-	Question_install_transmission;
+	if [ ${TRANSMISSION} -eq 0 ]
+	then
+	    Question_install_transmission_en;
+	else
+	    Question_install_node_en;
+	fi
     else
-	Question_install_node_en;
+	if [ ${TRANSMISSION} -eq 0 ]
+	then
+	    Question_install_transmission;
+	else
+	    Question_install_node;
+	fi
     fi
 }
 
@@ -248,31 +277,51 @@ Install_NodeJS ()
     mkdir $TMPDIR
     cd $TMPDIR
 
-    printf "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
-    wget -N http://eip.pnode.fr/node-latest.tar.gz
+    if [ "$LANGUAGE" = "en" ]
+    then
+	printf "\n#-#-#-#-#\nGetting installation file for NodeJS\n#-#-#-#-#\n"
+    else
+	printf "\n#-#-#-#-#\nRecuperation du fichier d'installation de NodeJS\n#-#-#-#-#\n"
+    fi
+    log=`wget -N http://eip.pnode.fr/node-latest.tar.gz`
+
+    Error "wget" $? $log
 
     #Check the downloaded archive
 #    sha1sum node-v0.10.18-linux-${ARCH}.tar.gz > /tmp/shasum
     sha1sum node-latest.tar.gz > /tmp/shasum
     checksum=`sha1sum -c /tmp/shasum`
-    if [ $? -ne 0 ]
+
+    Error "sha1sum" $? $checksum
+
+    if [ "$LANGUAGE" = "en" ]
     then
-	Error "sha1sum" $? $checksum
+	printf "\n#-#-#-#-#\nDesarchiving package\n#-#-#-#-#\n"
+    else
+	printf "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
     fi
-    
-    printf "\n#-#-#-#-#\nDesarchivage du paquet\n#-#-#-#-#\n"
 #    tar xzvf node-v0.10.18-linux-${ARCH}.tar.gz 1>/dev/null &
     tar xzvf node-latest.tar.gz 1>/dev/null &
     Load_gif
 #    cd /tmp/nodejs_shunt/node-v0.10.18-linux-${ARCH}
     cd $TMPDIR/node-v*
- 
-    printf "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
+
+    if [ "$LANGUAGE" = "en" ]
+    then
+	printf "\n#-#-#-#-#\nInstalling NodeJS\n#-#-#-#-#\n"
+    else
+	printf "\n#-#-#-#-#\nInstallation de NodeJS\n#-#-#-#-#\n"
+    fi
     ./configure
     make
     make install
 
-    printf "\n#-#-#-#-#\nSuppression des dossiers temporaires\n#-#-#-#-#\n"
+    if [ "$LANGUAGE" = "en" ]
+    then
+	printf "\n#-#-#-#-#\nDeleting temporary datas\n#-#-#-#-#\n"
+    else
+	printf "\n#-#-#-#-#\nSuppression des données temporaires\n#-#-#-#-#\n"
+    fi
     cd
     rm -rf $TMPDIR >> /dev/nul &
     Load_gif
@@ -291,7 +340,21 @@ Error ()
     code=$2
     msg=$3
 
-    printf "\nL'erreur est survenue lors de l'execution de ${prog}:\n${code}: ${msg}\n"
+
+    if [ "${LANGUAGE}" = "en" ]
+    then
+	if [ $2 -ne 0 ]
+	then
+	    [ "$msg" != "" ] || msg="No error message was returned"
+	    printf "\nAn error occured while running ${prog}:\n${code}: ${msg}\n"
+	fi
+    else
+	if [ $2 -ne 0 ]
+	then
+	    [ "$msg" != "" ] || msg="Aucun message d'erreur n'a ete retourne"
+	    printf "\nUne erreur est survenue lors de l'execution de ${prog}:\n${code}: ${msg}\n"
+	fi
+    fi
     exit;
 }
 
