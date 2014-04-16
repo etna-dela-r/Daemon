@@ -7,7 +7,7 @@ To build the MSI installer file, you will need Wix Toolset available at http://w
 Using Command line
 ------------------
 	%PathToWixToolset%\bin\candle.exe %ShuntFile%.xml -out %ShuntFile%.wixobj
-	%PathToWixToolset%\bin\light.exe %ShuntFile%.xml -ext WixUIExtension -out %ShuntFile%.msi
+	%PathToWixToolset%\bin\light.exe %ShuntFile%.wixobj -ext WixUIExtension -out %ShuntFile%.msi
 
 Using Wixedit
 -------------

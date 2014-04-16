@@ -12,9 +12,6 @@
                     <Component Id="nmp.cmd" DiskId="1" KeyPath="yes" Guid="239fad2a-356a-4a28-a1ef-843b74e55fdd">
                         <File Id="NPM.CMD" Name="npm.cmd" Source=".\npm.cmd" />
                     </Component>
-                    <Component Id="npmINSTALL" Guid="23434607-7F6D-4DF1-8A85-E35646100C39" DiskId="1" KeyPath="yes">
-                        <File Id="NPM_INSTALL.BAT" Name="npm_install.bat" Source=".\npm_install.bat" />
-                    </Component>
                     <Directory Id="NODE_MODULES" Name="node_modules">
                         <Directory Id="NPM" Name="npm">
                             <Component Id="_.NPMIGNORE" DiskId="1" Guid="4864D8D0-87C3-4605-86E9-C4A0A84E7CE3">
@@ -6658,14 +6655,12 @@
             <ComponentRef Id="PACKAGE.JSON_136" />
             <ComponentRef Id="PACKAGE.JSON_137" />
         </Feature>
-        <Feature Id="NpmInstallFeature" Level="1" Title="NpmFeature">
-            <ComponentRef Id="npmINSTALL" />
-        </Feature>
+        <Property Id="WIXUI_INSTALLDIR" Value="SHUNT" />
+        <UIRef Id="WixUI_InstallDir" />
         <UI>
         </UI>
-        <UIRef Id="WixUI_Minimal" />
         <Icon Id="logo_small.png" SourceFile=".\logo-small.png" />
-        <CustomAction Id="NpmBatLauncher" Execute="deferred" Return="asyncWait" Directory="SHUNT" ExeCommand="[SHUNT]\npm_install.bat">
+        <CustomAction Id="NpmBatLauncher" Execute="deferred" Return="asyncWait" Directory="SHUNT" ExeCommand="[SHUNT]\npm.cmd install">
         </CustomAction>
         <InstallExecuteSequence>
             <LaunchConditions />
@@ -6726,5 +6721,7 @@
             </Custom>
             <InstallFinalize />
         </InstallExecuteSequence>
+        <!--<UIRef Id="WixUI_ErrorProgressText" />
+		<Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />-->
     </Product>
 </Wix>
