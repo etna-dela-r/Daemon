@@ -12,6 +12,9 @@
                     <Component Id="nmp.cmd" DiskId="1" KeyPath="yes" Guid="239fad2a-356a-4a28-a1ef-843b74e55fdd">
                         <File Id="NPM.CMD" Name="npm.cmd" Source=".\npm.cmd" />
                     </Component>
+                    <Component Id="LICENSE_SHUNT" Guid="33363FF8-E2CE-44E7-B6A6-B90D6A27475C" DiskId="1" KeyPath="yes">
+                        <File Id="LICENSE_SHUNT" Name="LICENSE.TXT" Source="LICENSE.TXT" />
+                    </Component>
                     <Directory Id="NODE_MODULES" Name="node_modules">
                         <Directory Id="NPM" Name="npm">
                             <Component Id="_.NPMIGNORE" DiskId="1" Guid="4864D8D0-87C3-4605-86E9-C4A0A84E7CE3">
@@ -6654,11 +6657,13 @@
             <ComponentRef Id="PACKAGE.JSON_135" />
             <ComponentRef Id="PACKAGE.JSON_136" />
             <ComponentRef Id="PACKAGE.JSON_137" />
+            <ComponentRef Id="LICENSE_SHUNT" />
         </Feature>
         <Property Id="WIXUI_INSTALLDIR" Value="SHUNT" />
         <UIRef Id="WixUI_InstallDir" />
         <WixVariable Id="WixUIBannerBmp" Value="logo_banner.bmp" />
         <WixVariable Id="WixUIDialogBmp" Value="logo_dialog.bmp" />
+        <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
         <UI>
         </UI>
         <CustomAction Id="NpmBatLauncher" Execute="deferred" Return="asyncWait" Directory="SHUNT" ExeCommand="[SHUNT]\npm.cmd install">
