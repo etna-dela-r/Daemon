@@ -1,0 +1,9 @@
+Package: TestShunt
+Version: 0.1
+Section: base
+Priority: extra
+Architecture: all
+Depends: bash,python,g++,make,checkinstall,fakeroot,wget
+Maintainer: delame_r <delame_r@etna-alternance.net>
+Description: Un petit texte de description
+Homepage: http://www.shunt.fr
