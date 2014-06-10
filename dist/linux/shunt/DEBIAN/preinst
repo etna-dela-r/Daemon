@@ -1,0 +1,11 @@
+#!/bin/sh
+
+is_installed=$(dpkg --get-selections | grep -w node | cut -f7)
+
+if [ "$is_installed" != "install" ]
+then
+   echo "
+NodeJS is still not installed on your computer, but you need it to install Shunt!
+Please proceed with NodeJS installation on your own, or with the help of this script: https://github.com/etna-dela-r/Daemon/dist/linux/nodejs_install.sh
+"
+fi

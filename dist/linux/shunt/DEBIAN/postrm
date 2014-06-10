@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo "
+Thank you for using Shunt, we hope you enjoyed it!
+Do not hesitate to give your feedbacks on [FORUM_ADDR] or to [MAIL_ADDR].
+"
