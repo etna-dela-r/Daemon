@@ -11,6 +11,12 @@ then
     exit 1
 fi
 
+if [ "$(dpkg --get-selections | grep -w node | cut -f7)" = "install" ]
+then
+    echo "Node is already installed on your computer, you can already install Shunt."
+    exit 1
+fi
+
 echo "
 ### BEGINING NODEJS INSTALLATION ###
 This might take a while. Please hit RETURN to proceed, or ^C to abort.
