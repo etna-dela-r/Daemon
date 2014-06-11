@@ -1,9 +1,9 @@
 Package: Shunt
-Version: 0.5
+Version: 0.10
 Section: base
 Priority: extra
 Architecture: all
 Depends: bash,python,g++,make,checkinstall,fakeroot,wget
 Maintainer: delame_r <delame_r@etna-alternance.net>
-Description: Un petit texte de description
+Description: Shunt application
 Homepage: http://www.shunt.fr

@@ -1,12 +1,34 @@
 #!/bin/sh
 
+SHUNTDIR=/etc/shunt
+PIDFILE=/etc/shunt/.pid
 command="${1}"
 
 case "${command}" in
-   "start") sh /etc/shunt/start.sh
-         ;;
-   "stop") sh /etc/shunt/stop.sh
-         ;;
-   *) echo "[info] Usage: /etc/init.d/shunt-daemon {start|stop|restart}."
-      ;;
+
+    "start") if [ $(cat $PIDFILE) -ne 0 ]
+	then
+	echo "Shuntd is already running"
+	exit
+	fi
+	node $SHUNTDIR &
+	echo $! > $PIDFILE
+	echo "shuntd has been started"
+        ;;
+
+    "stop") if [ $(cat $PIDFILE) -eq 0 ]
+	then
+	  echo "Shuntd is not running"
+	  exit
+	fi
+	kill -2 $(cat $PIDFILE)
+	echo 0 > $PIDFILE
+	echo "shuntd has been stopped"
+        ;;
+
+    "restart") service shunt-daemon stop
+	service shunt-daemon start
+        ;;
+    *) echo "[info] Usage: /etc/init.d/shunt-daemon {start|stop|restart}."
+	;;
 esac

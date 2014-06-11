@@ -1,6 +1,12 @@
 #!/bin/sh
 
 echo "
+### INSTALLING SHUNT ###
+"
+cd /etc/shunt/
+npm install .
+
+echo "
 Thank you for installing Shunt, we hope you'll enjoy it!
 If you have any questions, you can ask them on [FORUM_ADDR] or to [EMAIL_ADDR].
 "
