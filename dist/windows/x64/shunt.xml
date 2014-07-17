@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
     <Product Id="39AAF9A2-18AA-4074-96BB-0496AE1541EF" Name="Shunt" Language="1033" Version="0.1.0" Manufacturer="Shunt Co" UpgradeCode="3A0346E3-763D-45EF-9A6F-892C510B63F7">
-        <Package Description="Install Shunt daemon" Comments="First versions" InstallerVersion="100" Compressed="yes" Languages="1033" Id="*" Manufacturer="Shunt Co" SummaryCodepage="1252" />
+        <Package Description="Install Shunt daemon" Comments="For the EIP of etna_2014 promotion" InstallerVersion="100" Compressed="yes" Languages="1033" Id="*" Manufacturer="Shunt Co" SummaryCodepage="1252" />
         <Media Id="1" Cabinet="shunt.cab" EmbedCab="yes" />
         <Directory Id="TARGETDIR" Name="SourceDir">
             <Directory Id="ProgramFilesFolder" Name="PFiles">
@@ -14,6 +14,14 @@
                     </Component>
                     <Component Id="LICENSE_SHUNT" Guid="33363FF8-E2CE-44E7-B6A6-B90D6A27475C" DiskId="1" KeyPath="yes">
                         <File Id="LICENSE_SHUNT" Name="LICENSE.TXT" Source="LICENSE.TXT" />
+                    </Component>
+                    <Component Id="START_STOP_SCRIPTS" Guid="838596A3-0520-43C8-AB87-7C5A0FFE598E" DiskId="1" KeyPath="yes">
+                        <File Id="SHUNT_START.BAT" Name="shunt_start.bat" Source="shunt_start.bat" />
+                        <File Id="SHUNT_STOP.BAT" Name="shunt_stop.bat" Source="shunt_stop.bat" />
+                    </Component>
+                    <Component Id="daemon" Guid="C2E882B9-AC5A-4AAF-99D3-728F0A4F4F0B" DiskId="1" KeyPath="yes">
+                        <File Id="INDEX.JS_50" Name="index.js" Source="index.js" />
+                        <File Id="PACKAGE.JSON_138" Name="package.json" Source="package.json" />
                     </Component>
                     <Directory Id="NODE_MODULES" Name="node_modules">
                         <Directory Id="NPM" Name="npm">
@@ -5163,6 +5171,14 @@
                             </Directory>
                         </Directory>
                     </Directory>
+                    <Directory Id="LIB_30" Name="lib">
+                        <Component Id="MAIN.COFFEE" DiskId="1" Guid="45C9EC6C-62BD-4F8A-93F1-D6052B176168">
+                            <File Id="MAIN.COFFEE" Name="main.coffee" Source="lib\main.coffee" />
+                        </Component>
+                        <Component Id="ROUTES.COFFEE" DiskId="1" Guid="510497C8-1DB8-4C0D-A66F-3C02B1B86F61">
+                            <File Id="ROUTES.COFFEE" Name="routes.coffee" Source="lib\routes.coffee" />
+                        </Component>
+                    </Directory>
                 </Directory>
             </Directory>
         </Directory>
@@ -6658,6 +6674,10 @@
             <ComponentRef Id="PACKAGE.JSON_136" />
             <ComponentRef Id="PACKAGE.JSON_137" />
             <ComponentRef Id="LICENSE_SHUNT" />
+            <ComponentRef Id="START_STOP_SCRIPTS" />
+            <ComponentRef Id="daemon" />
+            <ComponentRef Id="MAIN.COFFEE" />
+            <ComponentRef Id="ROUTES.COFFEE" />
         </Feature>
         <Property Id="WIXUI_INSTALLDIR" Value="SHUNT" />
         <UIRef Id="WixUI_InstallDir" />
